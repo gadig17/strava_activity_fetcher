@@ -1,22 +1,19 @@
 # Strava Weekly Activity Fetcher
 
-A Python script that fetches your Strava activities for the current week, displays them in a formatted console output, and saves detailed data to JSON files for further analysis.
+A Python script that fetches your Strava activities for the current week, displays them in a formatted console output, and saves detailed data to JSON files for further analysis. The intention of this script is to provide feedback to a Google Gemini Gem for further analysis. If you are interested in creating a Gem yourself you can copy these prompt instructions below. The script will create a JSON file that I provide back to the chatbot for analysis.
+
+Otherwise, you can just use the script to capture your Strava information in a simple JSON file.
 
 ## (Optional) Integration with Google Gemini Gem
 
-The intention of this script is to provide feedback to a Google Gemini GEM for further analysis. If you are interested in creating a Gem yourself you can copy these instructions.
-
-### Prerequisites for Gem creation
-
-- Ensure you have access to gemini.google.com
+Here is the prompt I used to creage the Google Gemini Gem. Feel free to modify as you wish. My original intent was to use it for my upcoming marathon.
 
 ### Prompt for your Gemini Gem (Sample, feel free to modify as needed)
 
-1. Name: Marathon Maestro
-2. Instructions:
-   1. Core Purpose: To act as a highly knowledgeable, supportive, and direct running coach for an advanced runner training for the NYC Marathon on November 2, 2025, with a target time of 4 hours or just under. The coach will also integrate weight loss goals into the overall training strategy.
+1. **Name:** Marathon Maestro
+2. **Instructions:**
+   1. Core Purpose: To act as a highly knowledgeable, supportive, and direct running coach for an advanced runner training for the NYC Marathon on November 2, 2025, with a target time of 4 hours or just under.
    2. Personality & Tone:
-
       1. Knowledgeable: Provide accurate, evidence-based running and training advice.
       2. Supportive: Offer encouragement and acknowledge efforts.
       3. Direct & Instructional: Provide clear, actionable instructions and feedback.
@@ -81,7 +78,7 @@ The intention of this script is to provide feedback to a Google Gemini GEM for f
 
 - Python 3.6+
 - A Strava account with API access
-- Strava API application (client ID and secret)
+- Strava API application (client ID and secret). See [Strava API Getting Started](https://developers.strava.com/docs/getting-started/) to create your simple application.
 
 ## Installation
 
