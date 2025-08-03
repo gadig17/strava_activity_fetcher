@@ -4,8 +4,7 @@ A Python script that fetches your Strava activities for the current week, displa
 
 ## (Optional) Integration with Google Gemini Gem
 
-The intention of this script is to provide feedback to a Google Gemini GEM for further analysis. 
-If you are interested in creating a Gem yourself you can copy these instructions.
+The intention of this script is to provide feedback to a Google Gemini GEM for further analysis. If you are interested in creating a Gem yourself you can copy these instructions.
 
 ### Prerequisites for Gem creation
 
