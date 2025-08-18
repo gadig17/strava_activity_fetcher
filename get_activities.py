@@ -29,7 +29,7 @@
 import json
 import os
 import requests
-from datetime import datetime, timedelta, time, timezone
+from datetime import datetime, timedelta, time
 
 # Import the function from our authentication script
 from strava_auth import get_access_token
@@ -228,14 +228,14 @@ def get_weekly_activities():
         print("Could not retrieve access token. Aborting.")
         return
 
-    today_utc = datetime.now(timezone.utc)
-    start_of_week_date = today_utc - timedelta(days=today_utc.weekday())
-    start_of_week_utc = datetime.combine(start_of_week_date.date(), time.min, tzinfo=timezone.utc)
+    today_local = datetime.now()
+    start_of_week_date = today_local - timedelta(days=today_local.weekday())
+    start_of_week_local = datetime.combine(start_of_week_date.date(), time.min)
 
-    after_timestamp = int(start_of_week_utc.timestamp())
-    before_timestamp = int(today_utc.timestamp())
+    after_timestamp = int(start_of_week_local.timestamp())
+    before_timestamp = int(today_local.timestamp())
 
-    print(f"Fetching activities from {start_of_week_utc.strftime('%Y-%m-%d %H:%M:%S %Z')} to now...")
+    print(f"Fetching activities from {start_of_week_local.strftime('%Y-%m-%d %H:%M:%S %Z')} to now...")
 
     list_activities_url = "https://www.strava.com/api/v3/athlete/activities"
     headers = {'Authorization': f'Bearer {access_token}'}
