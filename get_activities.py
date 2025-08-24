@@ -1,8 +1,8 @@
 # get_activities.py
 #
 # Description:
-# This script fetches your Strava activities for the current week. For runs, it
-# prints a Markdown-formatted summary to the console (for easy copy-pasting
+# This script fetches your Strava activities for a specified date range or the current week.
+# For runs, it prints a Markdown-formatted summary to the console (for easy copy-pasting
 # into an AI chat) and saves detailed data to a JSON file. For workouts, it displays
 # a simple summary and also saves to the JSON file.
 #
@@ -19,7 +19,9 @@
 #
 # Usage:
 #   Run from your terminal:
-#   python get_activities.py
+#   python get_activities.py                           # Current week (default behavior)
+#   python get_activities.py 2024-07-01               # From July 1, 2024 to today
+#   python get_activities.py 2024-07-01 2024-07-31    # From July 1 to July 31, 2024
 #
 # Output:
 #   - Console: Markdown-formatted activity summaries
@@ -29,10 +31,26 @@
 import json
 import os
 import requests
+import sys
 from datetime import datetime, timedelta, time
 
 # Import the function from our authentication script
 from strava_auth import get_access_token
+
+def parse_date_argument(date_str):
+    """
+    Parses a date string in YYYY-MM-DD format.
+    
+    Args:
+        date_str (str): Date string in YYYY-MM-DD format
+        
+    Returns:
+        datetime: Parsed datetime object or None if invalid
+    """
+    try:
+        return datetime.strptime(date_str, '%Y-%m-%d')
+    except ValueError:
+        return None
 
 def format_pace(seconds_per_meter):
     """
@@ -178,12 +196,14 @@ def prepare_workout_data(activity_summary):
     
     return workout_data
 
-def save_activities_to_json(all_activities_data):
+def save_activities_to_json(all_activities_data, start_date, end_date):
     """
     Saves all activities data to a single JSON file in the summary folder.
     
     Args:
         all_activities_data (list): List of activity data dictionaries
+        start_date (datetime): Start date for the period
+        end_date (datetime): End date for the period
         
     Returns:
         bool: True if successful, False otherwise
@@ -192,16 +212,20 @@ def save_activities_to_json(all_activities_data):
     summary_folder = "summary"
     os.makedirs(summary_folder, exist_ok=True)
         
-    # Generate filename with current date range
-    today = datetime.now()
-    start_of_week = today - timedelta(days=today.weekday())
-    filename = f"Weekly-Activities-{start_of_week.strftime('%Y-%m-%d')}-to-{today.strftime('%Y-%m-%d')}.json"
+    # Generate filename based on date range
+    start_str = start_date.strftime('%Y-%m-%d')
+    end_str = end_date.strftime('%Y-%m-%d')
+    
+    if start_str == end_str:
+        filename = f"Activities-{start_str}.json"
+    else:
+        filename = f"Activities-{start_str}-to-{end_str}.json"
     
     # Create full path to file in summary folder
     filepath = os.path.join(summary_folder, filename)
     
     json_data = {
-        "week_period": f"{start_of_week.strftime('%Y-%m-%d')} to {today.strftime('%Y-%m-%d')}",
+        "period": f"{start_str} to {end_str}",
         "generated_at": datetime.now().isoformat(),
         "total_activities": len(all_activities_data),
         "activities": all_activities_data
@@ -218,28 +242,45 @@ def save_activities_to_json(all_activities_data):
         print(f"\n  -> Error saving to JSON: {e}")
         return False
 
-def get_weekly_activities():
+def get_activities_for_period(start_date=None, end_date=None):
     """
-    Main function that fetches activities, prints Markdown to console, 
-    and saves all data to JSON.
+    Main function that fetches activities for a specified period or current week,
+    prints Markdown to console, and saves all data to JSON.
+    
+    Args:
+        start_date (datetime, optional): Start date for activity search. 
+                                       Defaults to start of current week.
+        end_date (datetime, optional): End date for activity search.
+                                     Defaults to current date/time.
     """
     access_token = get_access_token()
     if not access_token:
         print("Could not retrieve access token. Aborting.")
         return
 
-    today_local = datetime.now()
-    start_of_week_date = today_local - timedelta(days=today_local.weekday())
-    start_of_week_local = datetime.combine(start_of_week_date.date(), time.min)
+    # Set default date range if not provided (current week behavior)
+    if start_date is None:
+        today_local = datetime.now()
+        start_of_week_date = today_local - timedelta(days=today_local.weekday())
+        start_date = datetime.combine(start_of_week_date.date(), time.min)
+    else:
+        # Set to beginning of the specified start date
+        start_date = datetime.combine(start_date.date(), time.min)
+    
+    if end_date is None:
+        end_date = datetime.now()
+    else:
+        # Set to end of the specified end date
+        end_date = datetime.combine(end_date.date(), time.max)
 
-    after_timestamp = int(start_of_week_local.timestamp())
-    before_timestamp = int(today_local.timestamp())
+    after_timestamp = int(start_date.timestamp())
+    before_timestamp = int(end_date.timestamp())
 
-    print(f"Fetching activities from {start_of_week_local.strftime('%Y-%m-%d %H:%M:%S %Z')} to now...")
+    print(f"Fetching activities from {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')}...")
 
     list_activities_url = "https://www.strava.com/api/v3/athlete/activities"
     headers = {'Authorization': f'Bearer {access_token}'}
-    params = {'before': before_timestamp, 'after': after_timestamp, 'per_page': 50}
+    params = {'before': before_timestamp, 'after': after_timestamp, 'per_page': 200}
 
     all_activities_data = []
 
@@ -249,7 +290,7 @@ def get_weekly_activities():
         activities = response.json()
 
         if not activities:
-            print("\nNo activities found for this week.")
+            print("\nNo activities found for the specified period.")
             return
 
         print(f"\nFound {len(activities)} total activities. Processing...")
@@ -294,7 +335,7 @@ def get_weekly_activities():
 
         # Save all activities to JSON file
         if all_activities_data:
-            save_activities_to_json(all_activities_data)
+            save_activities_to_json(all_activities_data, start_date, end_date)
         else:
             print("\nNo runs or workouts found to save.")
 
@@ -303,5 +344,61 @@ def get_weekly_activities():
         if e.response:
             print(f"Response Content: {e.response.text}")
 
+def main():
+    """
+    Main entry point that handles command line arguments for date range.
+    
+    Usage:
+        python get_activities.py                           # Current week (default)
+        python get_activities.py 2024-07-01               # From July 1, 2024 to today
+        python get_activities.py 2024-07-01 2024-07-31    # From July 1 to July 31, 2024
+    """
+    start_date = None
+    end_date = None
+    
+    if len(sys.argv) > 1:
+        # Parse start date
+        start_date = parse_date_argument(sys.argv[1])
+        if start_date is None:
+            print(f"Error: Invalid start date '{sys.argv[1]}'. Please use YYYY-MM-DD format.")
+            print("Usage:")
+            print("  python get_activities.py                           # Current week")
+            print("  python get_activities.py 2024-07-01               # From July 1, 2024 to today")
+            print("  python get_activities.py 2024-07-01 2024-07-31    # From July 1 to July 31, 2024")
+            return
+    
+    if len(sys.argv) > 2:
+        # Parse end date
+        end_date = parse_date_argument(sys.argv[2])
+        if end_date is None:
+            print(f"Error: Invalid end date '{sys.argv[2]}'. Please use YYYY-MM-DD format.")
+            print("Usage:")
+            print("  python get_activities.py                           # Current week")
+            print("  python get_activities.py 2024-07-01               # From July 1, 2024 to today")
+            print("  python get_activities.py 2024-07-01 2024-07-31    # From July 1 to July 31, 2024")
+            return
+    
+    if len(sys.argv) > 3:
+        print("Error: Too many arguments provided.")
+        print("Usage:")
+        print("  python get_activities.py                           # Current week")
+        print("  python get_activities.py 2024-07-01               # From July 1, 2024 to today")
+        print("  python get_activities.py 2024-07-01 2024-07-31    # From July 1 to July 31, 2024")
+        return
+    
+    # Validate date range if both dates provided
+    if start_date and end_date and start_date > end_date:
+        print("Error: Start date cannot be later than end date.")
+        return
+    
+    get_activities_for_period(start_date, end_date)
+
+# Maintain backwards compatibility
+def get_weekly_activities():
+    """
+    Backwards compatibility function that maintains the original weekly behavior.
+    """
+    get_activities_for_period()
+
 if __name__ == "__main__":
-    get_weekly_activities()
+    main()

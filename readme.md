@@ -1,6 +1,6 @@
 # Strava Weekly Activity Fetcher
 
-A Python script that fetches your Strava activities for the current week, displays them in a formatted console output, and saves detailed data to JSON files for further analysis. The intention of this script is to provide feedback to a Google Gemini Gem for further analysis. If you are interested in creating a Gem yourself you can copy these prompt instructions below. The script will create a JSON file that I provide back to the chatbot for analysis.
+A Python script that fetches your Strava activities for a specific date range or the current week, displays them in a formatted console output, and saves detailed data to JSON files for further analysis. The intention of this script is to provide feedback to a Google Gemini Gem for further analysis. If you are interested in creating a Gem yourself you can copy these prompt instructions below. The script will create a JSON file that I provide back to the chatbot for analysis.
 
 Otherwise, you can just use the script to capture your Strava information in a simple JSON file.
 
@@ -65,7 +65,7 @@ Here is the prompt I used to creage the Google Gemini Gem. Feel free to modify a
 
 ## Features
 
-- **Weekly Activity Fetching**: Automatically retrieves activities from Monday to today
+- **Flexible Date Range Fetching**: Retrieve activities for custom date ranges or default to current week
 - **Console Output**: Clean, Markdown-formatted summaries for easy copy-pasting into AI chats
 - **JSON Export**: Saves all activity data to structured JSON files in a `summary/` folder
 - **Activity Types Supported**:
@@ -152,11 +152,33 @@ Replace the values with the data from your Strava API application and the token 
 
 ### Basic Usage
 
-Run the main script to fetch activities for the current week:
+**Current Week (Default Behavior)**:
 
 ```bash
 python get_activities.py
 ```
+
+**Custom Date Range**:
+
+```bash
+# From a specific start date to today
+python get_activities.py 2024-07-01
+
+# From a specific start date to a specific end date
+python get_activities.py 2024-07-01 2024-07-31
+
+# Single day
+python get_activities.py 2024-07-15 2024-07-15
+```
+
+### Date Format
+
+All dates must be provided in `YYYY-MM-DD` format:
+
+- ✅ `2024-07-01`
+- ✅ `2024-12-25`
+- ❌ `7/1/2024`
+- ❌ `July 1, 2024`
 
 ### Authentication Testing
 
@@ -173,7 +195,7 @@ python strava_auth.py
 The script displays activities in a clean, readable format:
 
 ```text
-Fetching activities from 2025-07-28 00:00:00 UTC to now...
+Fetching activities from 2025-07-28 00:00:00 UTC to 2025-07-31 00:00:00 UTC...
 Found 3 total activities. Processing...
 
 --- Processing Run: 'Morning Run' on 2025-07-30 ---
@@ -192,7 +214,7 @@ Found 3 total activities. Processing...
 
 ### JSON Output
 
-Activity data is saved to `summary/Weekly-Activities-YYYY-MM-DD-to-YYYY-MM-DD.json`:
+Activity data is saved to `summary/Activities-YYYY-MM-DD-to-YYYY-MM-DD.json`:
 
 ```json
 {
@@ -224,7 +246,7 @@ Activity data is saved to `summary/Weekly-Activities-YYYY-MM-DD-to-YYYY-MM-DD.js
 ├── .env                  # Environment variables (not in repo)
 ├── .gitignore           # Git ignore rules
 ├── summary/             # Output folder for JSON files
-│   └── Weekly-Activities-*.json
+│   └── Activities-*.json
 └── README.md            # This file
 ```
 
