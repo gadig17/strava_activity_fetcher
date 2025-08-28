@@ -1,4 +1,4 @@
-# Strava Weekly Activity Fetcher
+# Strava Activity Fetcher
 
 A Python script that fetches your Strava activities for a specific date range or the current week, displays them in a formatted console output, and saves detailed data to JSON files for further analysis. The intention of this script is to provide feedback to a Google Gemini Gem for further analysis. If you are interested in creating a Gem yourself you can copy these prompt instructions below. The script will create a JSON file that I provide back to the chatbot for analysis.
 
